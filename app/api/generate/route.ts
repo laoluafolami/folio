@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { DefaultAzureCredential } from "@azure/identity";
+import { ManagedIdentityCredential } from "@azure/identity";
 import dns from "node:dns";
 
 // Permanently fixes the Windows "fetch failed / EAI_AGAIN" DNS glitch
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
     const agentName = "talk-writer-agent";
 
     // 2. Get your Azure login token from 'az login'
-    const credential = new DefaultAzureCredential();
+    const credential = new ManagedIdentityCredential();
     const token = await credential.getToken("https://ai.azure.com/.default");
 
     // 3. Call the Foundry Agent Responses API using the exact Microsoft pattern
