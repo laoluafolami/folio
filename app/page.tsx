@@ -31,6 +31,22 @@ const audiences = ["General", "Young adults", "Youth", "Professionals", "Retreat
 const tones = ["Warm", "Inspiring", "Reflective", "Bold"];
 const lengths = [15, 30, 45];
 
+const fullJourney = [
+  "Reading your uploaded books...",
+  "Finding the right opening story...",
+  "Drawing from the Catechism...",
+  "Weaving in St. Josemaría...",
+  "Shaping the spoken voice...",
+  "Polishing the final draft...",
+];
+
+const outlineJourney = [
+  "Sketching the structure...",
+  "Choosing the opening story...",
+  "Placing the anecdotes...",
+  "Sharpening the central message...",
+];
+
 const LIBRARY_KEY = "folio-library";
 
 function loadLibrary(): SavedTalk[] {
@@ -199,6 +215,7 @@ export default function Home() {
 
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [library, setLibrary] = useState<SavedTalk[]>(() => loadLibrary());
+  const [statusIndex, setStatusIndex] = useState(0);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -207,6 +224,18 @@ export default function Home() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      setStatusIndex(0);
+      return;
+    }
+    const journey = loading === "full" ? fullJourney : outlineJourney;
+    const interval = window.setInterval(() => {
+      setStatusIndex((prev) => Math.min(prev + 1, journey.length - 1));
+    }, 5000);
+    return () => window.clearInterval(interval);
+  }, [loading]);
 
   async function generate(mode: "outline" | "full") {
     if (!topic.trim()) {
@@ -342,6 +371,9 @@ export default function Home() {
     );
   }
 
+  const journey = loading === "full" ? fullJourney : outlineJourney;
+  const statusMessage = journey[Math.min(statusIndex, journey.length - 1)];
+
   return (
     <div className="app">
       <header className="topbar">
@@ -454,7 +486,7 @@ export default function Home() {
           {loading && (
             <div className="status">
               <span className="dot" />
-              {loading === "outline" ? "Sketching the outline..." : "Composing your talk..."}
+              <span key={statusIndex} className="statusText">{statusMessage}</span>
             </div>
           )}
 
