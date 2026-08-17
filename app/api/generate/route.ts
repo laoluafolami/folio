@@ -105,32 +105,40 @@ export async function POST(request: Request) {
     const projectEndpoint = "https://talk-writer-agent.services.ai.azure.com/api/projects/laoluafolami-8396";
     const agentName = "talk-writer-agent";
 
-    // 2. Get the API Key from the live server environment
+    // 2. Get the API Key from the live server environment (or local .env.local)
     const apiKey = process.env.AZURE_PROJECT_API_KEY;
-    if (!apiKey) throw new Error("Missing AZURE_PROJECT_API_KEY in Azure Environment Variables");
+    if (!apiKey) {
+        return NextResponse.json({ 
+            ...demoResponse(body), 
+            warning: "Missing AZURE_PROJECT_API_KEY in Environment Variables. Showing sample output." 
+        });
+    }
 
-   // 3. Call the Foundry Agent Responses API using the API Key
+    // 3. Call the Foundry Agent Responses API using the API Key
     const url = `${projectEndpoint}/openai/v1/responses`;
 
+    // Define headers once so we use them for both the POST and the polling GET
+    const headers = {
+        "api-key": apiKey,
+        "Content-Type": "application/json",
+    };
+
     const response = await fetch(url, {
-     method: "POST",
-     headers: {
-       "api-key": apiKey,
-       "Content-Type": "application/json",
-     },
-      body: JSON.stringify({
-        input: buildUserPrompt(body),
-        agent_reference: {
-          name: agentName,
-          type: "agent_reference",
-        },
-      }),
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+            input: buildUserPrompt(body),
+            agent_reference: {
+                name: agentName,
+                type: "agent_reference",
+            },
+        }),
     });
 
     const responseText = await response.text();
 
     if (!response.ok) {
-      throw new Error(`Foundry API error ${response.status}: ${responseText.slice(0, 500)}`);
+        throw new Error(`Foundry API error ${response.status}: ${responseText.slice(0, 500)}`);
     }
 
     let data = JSON.parse(responseText);
@@ -138,42 +146,40 @@ export async function POST(request: Request) {
     // Poll if the agent is still reading books/thinking (background mode)
     let guard = 0;
     while (data.status === "in_progress" || data.status === "queued") {
-      if (guard++ > 60) throw new Error("Agent timed out after 3 minutes.");
-      await new Promise((r) => setTimeout(r, 3000)); // Wait 3 seconds
-      
-      const pollRes = await fetch(`${url}/${data.id}`, {
-        headers: { Authorization: `Bearer ${token.token}` },
-      });
-      const pollText = await pollRes.text();
-      if (!pollRes.ok) throw new Error(`Poll error: ${pollText}`);
-      data = JSON.parse(pollText);
+        if (guard++ > 60) throw new Error("Agent timed out after 3 minutes.");
+        await new Promise((r) => setTimeout(r, 3000)); // Wait 3 seconds
+        
+        const pollRes = await fetch(`${url}/${data.id}`, { headers });
+        const pollText = await pollRes.text();
+        if (!pollRes.ok) throw new Error(`Poll error: ${pollText}`);
+        data = JSON.parse(pollText);
     }
 
     // Extract the final text
     let finalText = data.output_text || "";
     if (!finalText && Array.isArray(data.output)) {
-      finalText = data.output
-        .filter((item: any) => item.type === "message")
-        .flatMap((item: any) => item.content || [])
-        .map((c: any) => c.text)
-        .join("\n\n");
+        finalText = data.output
+            .filter((item: any) => item.type === "message")
+            .flatMap((item: any) => item.content || [])
+            .map((c: any) => c.text)
+            .join("\n\n");
     }
 
     const parsed = parseAgentOutput(finalText, body.mode);
 
     if (!parsed) {
-      return NextResponse.json({ ...demoResponse(body), warning: "The agent returned an empty response." });
+        return NextResponse.json({ ...demoResponse(body), warning: "The agent returned an empty response." });
     }
 
     return NextResponse.json(parsed);
 
   } catch (error) {
     console.error("Azure Agent Error:", error);
-        const cause = (error as any)?.cause;
+    const cause = (error as any)?.cause;
     const raw =
-      error instanceof Error
-        ? `${error.message}${cause ? ` [cause: ${cause.code || cause.message || "see terminal"}]` : ""}`
-        : "Unknown error";
+        error instanceof Error
+            ? `${error.message}${cause ? ` [cause: ${cause.code || cause.message || "see terminal"}]` : ""}`
+            : "Unknown error";
     return NextResponse.json({ ...demoResponse(body), warning: `Azure error: ${raw}` });
   }
 }
