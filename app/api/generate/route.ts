@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { ManagedIdentityCredential } from "@azure/identity";
 import dns from "node:dns";
 
 // Permanently fixes the Windows "fetch failed / EAI_AGAIN" DNS glitch
@@ -106,19 +105,19 @@ export async function POST(request: Request) {
     const projectEndpoint = "https://talk-writer-agent.services.ai.azure.com/api/projects/laoluafolami-8396";
     const agentName = "talk-writer-agent";
 
-    // 2. Get your Azure login token from 'az login'
-    const credential = new ManagedIdentityCredential();
-    const token = await credential.getToken("https://ai.azure.com/.default");
+    // 2. Get the API Key from the live server environment
+    const apiKey = process.env.AZURE_PROJECT_API_KEY;
+    if (!apiKey) throw new Error("Missing AZURE_PROJECT_API_KEY in Azure Environment Variables");
 
-    // 3. Call the Foundry Agent Responses API using the exact Microsoft pattern
+   // 3. Call the Foundry Agent Responses API using the API Key
     const url = `${projectEndpoint}/openai/v1/responses`;
 
     const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token.token}`,
-        "Content-Type": "application/json",
-      },
+     method: "POST",
+     headers: {
+       "api-key": apiKey,
+       "Content-Type": "application/json",
+     },
       body: JSON.stringify({
         input: buildUserPrompt(body),
         agent_reference: {
