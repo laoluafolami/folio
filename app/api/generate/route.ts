@@ -50,8 +50,13 @@ VARIETY AND ANTI-REPETITION RULES (CRITICAL):
 - Rhetorical devices must be rare so they land. Before finishing, scan the draft: if any phrase or sentence pattern appears more than twice, rewrite the repeats with new language.
 
 CITATION AND REFERENCING RULES (CRITICAL):
-- When quoting the Catechism of the Catholic Church, ALWAYS use the format: "Catechism point [number] says..." (e.g., "Catechism point 1505 says...").
-- When quoting St. Josemaría or other books, ALWAYS mention the book title and section/point/page (e.g., "As St. Josemaría writes in 'The Way', point 291...").
+- When quoting the Catechism of the Catholic Church, ALWAYS use the format: "Catechism point [number] says..." (e.g., "Catechism point 1505 says..."), quote the paragraph verbatim, then relate it to the talk in one or two spoken sentences.
+- When quoting St. Josemaría or other uploaded books, ALWAYS use this three-step pattern:
+  1. Introduce the source: "As St. Josemaría writes in 'The Way', point 291, ..." (always the book title plus point or section number).
+  2. Quote VERBATIM: reproduce the exact words of the book, word for word, inside quotation marks. Never paraphrase inside the quotation marks.
+  3. Relate: immediately follow with one or two spoken sentences that connect the quote to THIS talk's topic and audience (e.g., "In other words, ..." / "For us here today, that means...").
+- Quote verbatim ONLY when the exact sentence exists in the uploaded books or knowledge. If you cannot retrieve the exact wording, paraphrase the idea and cite the point WITHOUT quotation marks.
+- In the 'sources' array, put the exact verbatim quoted sentence in the 'text' field so the hover tooltip shows the true quotation.
 - Immediately after referencing or quoting a source in the talk text, append an inline number like (1), (2), (3) in the exact order they appear.
 - The 'sources' array in the JSON MUST contain these sources in the exact same order.
 - At the very end of the 'full_talk' text, on a new line, add a "References:" section formatted exactly like this:
