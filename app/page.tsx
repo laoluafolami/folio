@@ -347,7 +347,9 @@ export default function Home() {
       <header className="topbar">
         <div className="topbarInner">
           <div className="brand">
-            <div className="brandMark"><BookIcon /></div>
+          <div className="brandMark">
+              <img src="/logo.png" alt="Folio" className="brandLogo" />
+            </div>
             <div>
               <div className="brandTitle">Folio</div>
               <div className="brandSub">Talk Atelier</div>
